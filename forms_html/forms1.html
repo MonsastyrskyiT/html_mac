@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="../forms1.css">
+</head>
+<body>
+    <main class="forum">
+        <section id="message-list" class="message-list" aria-live="polite">
+            <article class="message">
+                <header class="message__header">
+                    <strong>Alex</strong>
+                    <time datetime="2018-03-22T10:05:00">10:05:00 22.03.2018</time>
+                </header>
+                <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.</p>
+            </article>
+        </section>
+
+        <form id="message-form" class="message-form">
+            <h1>Add new message:</h1>
+
+            <div class="form-row">
+                <label for="user-name">Your name:</label>
+                <input id="user-name" name="userName" type="text" autocomplete="name" required>
+            </div>
+
+            <div class="form-row form-row--message">
+                <label for="user-message">Your message:</label>
+                <textarea id="user-message" name="userMessage" rows="4" required></textarea>
+            </div>
+
+            <button type="submit">Send</button>
+        </form>
+    </main>
+
+    <script>
+        const form = document.querySelector('#message-form');
+        const messageList = document.querySelector('#message-list');
+
+        function formatDate(date) {
+            const twoDigits = (number) => String(number).padStart(2, '0');
+
+            return `${twoDigits(date.getHours())}:${twoDigits(date.getMinutes())}:${twoDigits(date.getSeconds())} ` +
+                `${twoDigits(date.getDate())}.${twoDigits(date.getMonth() + 1)}.${date.getFullYear()}`;
+        }
+
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const name = form.elements.userName.value.trim();
+            const text = form.elements.userMessage.value.trim();
+
+            if (!name || !text) {
+                form.reportValidity();
+                return;
+            }
+
+            const now = new Date();
+            const message = document.createElement('article');
+            message.className = 'message';
+
+            const header = document.createElement('header');
+            header.className = 'message__header';
+
+            const author = document.createElement('strong');
+            author.textContent = name;
+
+            const time = document.createElement('time');
+            time.dateTime = now.toISOString();
+            time.textContent = formatDate(now);
+
+            const paragraph = document.createElement('p');
+            paragraph.textContent = text;
+
+            header.append(author, time);
+            message.append(header, paragraph);
+            messageList.append(message);
+
+            form.reset();
+            form.elements.userName.focus();
+        });
+    </script>
+</body>
+</html>

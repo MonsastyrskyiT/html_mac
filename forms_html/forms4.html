@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Книжный магазин</title>
+    <link rel="stylesheet" href="forms4.css">
+</head>
+<body>
+    <main class="book-store">
+        <section class="catalog" aria-label="Каталог книг">
+            <article class="book-card">
+                <div class="book-cover cover-js" aria-hidden="true">
+                    <span>Learning</span>
+                    <strong>JavaScript</strong>
+                    <small>3rd edition</small>
+                </div>
+                <h2>Learning JavaScript: JavaScript Essentials for Modern Application Development</h2>
+                <p class="author">Ethan Brown</p>
+                <p class="price">16$</p>
+                <button class="select-book" type="button"
+                    data-book="Learning JavaScript: JavaScript Essentials for Modern Application Development">Select</button>
+            </article>
+
+            <article class="book-card">
+                <div class="book-cover cover-scope" aria-hidden="true">
+                    <span>You Don’t Know JS:</span>
+                    <strong>SCOPE &amp;<br>CLOSURES</strong>
+                    <b>JS</b>
+                </div>
+                <h2>You Don’t Know JS: Scope &amp; Closures</h2>
+                <p class="author">Kyle Simpson</p>
+                <p class="price">20$</p>
+                <button class="select-book" type="button"
+                    data-book="You Don’t Know JS: Scope &amp; Closures">Select</button>
+            </article>
+
+            <article class="book-card">
+                <div class="book-cover cover-jquery" aria-hidden="true">
+                    <span>JAVASCRIPT<br>&amp; JQUERY</span>
+                </div>
+                <h2>JavaScript and JQuery: Interactive Front-End Web Development</h2>
+                <p class="author">Jon Duckett</p>
+                <p class="price">22$</p>
+                <button class="select-book" type="button"
+                    data-book="JavaScript and JQuery: Interactive Front-End Web Development">Select</button>
+            </article>
+        </section>
+
+        <form id="order-form" class="order-form">
+            <div class="form-row">
+                <label for="book">Book:</label>
+                <input id="book" name="book" type="text" readonly required>
+            </div>
+
+            <div class="form-row">
+                <label for="quantity">Quantity:</label>
+                <input id="quantity" name="quantity" type="number" min="1" step="1" required>
+            </div>
+
+            <div class="form-row">
+                <label for="customer-name">Name:</label>
+                <input id="customer-name" name="customerName" type="text" autocomplete="name" required>
+            </div>
+
+            <div class="form-row form-row--large">
+                <label for="address">Delivery address:</label>
+                <textarea id="address" name="address" rows="4" autocomplete="street-address" required></textarea>
+            </div>
+
+            <div class="form-row">
+                <label for="delivery-date">Delivery date:</label>
+                <input id="delivery-date" name="deliveryDate" type="text" placeholder="26.07.2018" required>
+            </div>
+
+            <div class="form-row form-row--large">
+                <label for="comment">Comment:</label>
+                <textarea id="comment" name="comment" rows="4"></textarea>
+            </div>
+
+            <button class="buy-button" type="submit">Buy</button>
+        </form>
+
+        <p id="confirmation" class="confirmation" aria-live="polite" hidden></p>
+    </main>
+
+    <script>
+        const orderForm = document.querySelector('#order-form');
+        const bookInput = document.querySelector('#book');
+        const confirmation = document.querySelector('#confirmation');
+        const selectButtons = document.querySelectorAll('.select-book');
+
+        selectButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                bookInput.value = button.dataset.book;
+                confirmation.hidden = true;
+
+                selectButtons.forEach((item) => item.classList.remove('selected'));
+                button.classList.add('selected');
+                orderForm.elements.quantity.focus();
+            });
+        });
+
+        orderForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            if (!bookInput.value) {
+                confirmation.textContent = 'Сначала выберите книгу в каталоге.';
+                confirmation.hidden = false;
+                selectButtons[0].focus();
+                return;
+            }
+
+            if (!orderForm.reportValidity()) {
+                return;
+            }
+
+            const data = new FormData(orderForm);
+            confirmation.textContent = `${data.get('customerName')}, спасибо за заказ. ` +
+                `Товар «${data.get('book')}» в количестве ${data.get('quantity')} шт. ` +
+                `будет доставлен ${data.get('deliveryDate')} по адресу: ${data.get('address')}.`;
+            confirmation.hidden = false;
+            confirmation.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+    </script>
+</body>
+</html>

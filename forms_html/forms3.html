@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="forms3.css">
+</head>
+<body>
+    <main class="text-editor">
+        <form id="style-form" class="editor-form">
+            <div class="controls">
+                <label><input id="bold" type="checkbox"> Bold</label>
+                <label><input id="underline" type="checkbox"> Underline</label>
+                <label><input id="italics" type="checkbox"> Italics</label>
+
+                <label><input type="radio" name="alignment" value="left" checked> Left</label>
+                <label><input type="radio" name="alignment" value="right"> Right</label>
+                <label><input type="radio" name="alignment" value="justify"> Justify</label>
+            </div>
+
+            <label class="visually-hidden" for="source-text">Введите текст</label>
+            <textarea id="source-text" rows="7" required></textarea>
+            <button type="submit">Show text</button>
+        </form>
+
+        <section id="result-box" class="result-box" aria-live="polite" hidden>
+            <h1>Result:</h1>
+            <p id="result-text" class="result-text"></p>
+        </section>
+    </main>
+
+    <script>
+        const form = document.querySelector('#style-form');
+        const sourceText = document.querySelector('#source-text');
+        const resultBox = document.querySelector('#result-box');
+        const resultText = document.querySelector('#result-text');
+
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const text = sourceText.value.trim();
+            if (!text) {
+                sourceText.setCustomValidity('Введите текст');
+                sourceText.reportValidity();
+                return;
+            }
+
+            sourceText.setCustomValidity('');
+            resultText.textContent = text;
+            resultText.className = 'result-text';
+
+            if (form.querySelector('#bold').checked) {
+                resultText.classList.add('is-bold');
+            }
+            if (form.querySelector('#underline').checked) {
+                resultText.classList.add('is-underlined');
+            }
+            if (form.querySelector('#italics').checked) {
+                resultText.classList.add('is-italic');
+            }
+
+            const alignment = new FormData(form).get('alignment');
+            resultText.classList.add(`align-${alignment}`);
+            resultBox.hidden = false;
+            resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+
+        sourceText.addEventListener('input', () => {
+            sourceText.setCustomValidity('');
+        });
+    </script>
+</body>
+</html>

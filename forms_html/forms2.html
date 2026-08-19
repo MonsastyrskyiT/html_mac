@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="forms2.css">
+</head>
+<body>
+    <main class="quiz" aria-labelledby="question-title">
+        <form id="quiz-form">
+            <fieldset>
+                <legend id="question-title"></legend>
+                <div id="answer-list" class="answers"></div>
+            </fieldset>
+
+            <button id="action-button" type="submit">Next</button>
+        </form>
+
+        <p id="result" class="result" aria-live="polite" hidden></p>
+    </main>
+
+    <script>
+        const questions = [
+            {
+                text: 'How many letters are there in the word “Hello”?',
+                answers: ['5', '2'],
+                correctAnswer: '5'
+            },
+            {
+                text: 'How many letters are there in the word “World”?',
+                answers: ['4', '5'],
+                correctAnswer: '5'
+            }
+        ];
+
+        const form = document.querySelector('#quiz-form');
+        const questionTitle = document.querySelector('#question-title');
+        const answerList = document.querySelector('#answer-list');
+        const actionButton = document.querySelector('#action-button');
+        const result = document.querySelector('#result');
+
+        let currentQuestion = 0;
+        let correctAnswers = 0;
+
+        function showQuestion() {
+            const question = questions[currentQuestion];
+            questionTitle.textContent = `${currentQuestion + 1}) ${question.text}`;
+            answerList.replaceChildren();
+
+            question.answers.forEach((answer, index) => {
+                const label = document.createElement('label');
+                const radio = document.createElement('input');
+
+                radio.type = 'radio';
+                radio.name = 'answer';
+                radio.value = answer;
+                radio.required = true;
+
+                label.append(radio, document.createTextNode(answer));
+                answerList.append(label);
+
+                if (index === 0) {
+                    radio.focus();
+                }
+            });
+
+            const isLastQuestion = currentQuestion === questions.length - 1;
+            actionButton.textContent = isLastQuestion ? 'Finish' : 'Next';
+        }
+
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const selectedAnswer = new FormData(form).get('answer');
+            if (selectedAnswer === questions[currentQuestion].correctAnswer) {
+                correctAnswers += 1;
+            }
+
+            currentQuestion += 1;
+
+            if (currentQuestion < questions.length) {
+                showQuestion();
+                return;
+            }
+
+            form.hidden = true;
+            result.hidden = false;
+            result.innerHTML = `Result: <strong>${correctAnswers}</strong> correct answers to ${questions.length} questions.`;
+        });
+
+        showQuestion();
+    </script>
+</body>
+</html>
