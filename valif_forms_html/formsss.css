@@ -1,0 +1,162 @@
+:root {
+    font-family: "Times New Roman", Times, serif;
+    color: #111;
+    background: #fff;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 28px;
+}
+
+.palette-app {
+    width: min(900px, 100%);
+    margin: 0 auto;
+    padding: 22px 10px 16px;
+    background: #fff7ef;
+}
+
+.color-form {
+    width: min(330px, 100%);
+    margin: 0 auto;
+}
+
+.color-form h1,
+.colors-section h2 {
+    margin: 0 0 20px;
+    text-align: center;
+    font-size: 18px;
+}
+
+.field {
+    margin-bottom: 10px;
+}
+
+.field-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 8px;
+}
+
+.field label {
+    display: block;
+    font-size: 14px;
+}
+
+.field input,
+.field select,
+.color-form button {
+    width: 100%;
+    min-height: 25px;
+    border: 1px solid #aaa;
+    border-radius: 2px;
+    font: inherit;
+}
+
+.field input,
+.field select {
+    padding: 3px 7px;
+    background: #fff;
+}
+
+.color-form button {
+    cursor: pointer;
+    background: #e5e5e5;
+}
+
+.color-form button:hover {
+    background: #d8d8d8;
+}
+
+.field input:focus,
+.field select:focus,
+.color-form button:focus-visible {
+    outline: 2px solid #557eb8;
+    outline-offset: 1px;
+}
+
+.field input.invalid {
+    border-color: #b00000;
+}
+
+.error {
+    color: #b00000;
+    text-align: right;
+    font-size: 13px;
+}
+
+.colors-section {
+    margin-top: 44px;
+}
+
+.colors-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(180px, 1fr));
+    gap: 18px;
+}
+
+.color-card {
+    display: grid;
+    place-items: center;
+    min-height: 145px;
+    padding: 20px;
+}
+
+.color-info {
+    display: grid;
+    justify-items: center;
+    min-width: 150px;
+    padding: 14px 18px;
+    background: rgba(255, 255, 255, 0.58);
+    text-align: center;
+}
+
+.color-info strong,
+.color-info span,
+.color-info b {
+    overflow-wrap: anywhere;
+}
+
+.color-info strong {
+    font-size: 16px;
+    font-weight: normal;
+}
+
+.color-info span {
+    margin: 5px 0;
+    font-size: 13px;
+}
+
+.color-info b {
+    font-size: 16px;
+}
+
+@media (max-width: 700px) {
+    .colors-list {
+        grid-template-columns: repeat(2, minmax(150px, 1fr));
+    }
+}
+
+@media (max-width: 460px) {
+    body {
+        padding: 10px;
+    }
+
+    .colors-list {
+        grid-template-columns: 1fr;
+    }
+
+    .field-heading {
+        display: block;
+    }
+
+    .error {
+        display: block;
+        text-align: left;
+    }
+}

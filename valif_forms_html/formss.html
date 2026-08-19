@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Палитра цветов</title>
+    <link rel="stylesheet" href="formsss.css">
+</head>
+<body>
+    <main class="palette-app">
+        <form id="color-form" class="color-form" novalidate>
+            <h1>Create new color</h1>
+
+            <div class="field">
+                <div class="field-heading">
+                    <label for="color-name">Color:</label>
+                    <span id="name-error" class="error" aria-live="polite"></span>
+                </div>
+                <input id="color-name" name="colorName" type="text" autocomplete="off">
+            </div>
+
+            <div class="field">
+                <label for="color-type">Type:</label>
+                <select id="color-type" name="colorType">
+                    <option value="RGB">RGB</option>
+                    <option value="RGBA">RGBA</option>
+                    <option value="HEX">HEX</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <div class="field-heading">
+                    <label for="color-code">Code:</label>
+                    <span id="code-error" class="error" aria-live="polite"></span>
+                </div>
+                <input id="color-code" name="colorCode" type="text" autocomplete="off">
+            </div>
+
+            <button type="submit">Save</button>
+        </form>
+
+        <section class="colors-section" aria-labelledby="colors-title">
+            <h2 id="colors-title">All colors</h2>
+            <div id="colors-list" class="colors-list" aria-live="polite"></div>
+        </section>
+    </main>
+
+    <script>
+        const COOKIE_NAME = 'customColors';
+        const COOKIE_LIFETIME = 3 * 60 * 60;
+        const initialColors = [
+            { name: 'YELLOWGREEN', type: 'RGB', code: '154, 205, 50' },
+            { name: 'DARKCYAN', type: 'RGBA', code: '0, 139, 139, 1' },
+            { name: 'ORANGERED', type: 'HEX', code: '#FF4500' }
+        ];
+
+        const form = document.querySelector('#color-form');
+        const nameInput = document.querySelector('#color-name');
+        const typeSelect = document.querySelector('#color-type');
+        const codeInput = document.querySelector('#color-code');
+        const nameError = document.querySelector('#name-error');
+        const codeError = document.querySelector('#code-error');
+        const colorsList = document.querySelector('#colors-list');
+
+        let colors = loadColors();
+
+        function getCookie(name) {
+            const prefix = `${encodeURIComponent(name)}=`;
+            const cookie = document.cookie
+                .split('; ')
+                .find((item) => item.startsWith(prefix));
+
+            return cookie ? decodeURIComponent(cookie.slice(prefix.length)) : null;
+        }
+
+        function loadColors() {
+            const savedColors = getCookie(COOKIE_NAME);
+            if (!savedColors) {
+                return [...initialColors];
+            }
+
+            try {
+                const parsedColors = JSON.parse(savedColors);
+                return Array.isArray(parsedColors) ? parsedColors : [...initialColors];
+            } catch {
+                return [...initialColors];
+            }
+        }
+
+        function saveColors() {
+            const value = encodeURIComponent(JSON.stringify(colors));
+            document.cookie = `${encodeURIComponent(COOKIE_NAME)}=${value}; Max-Age=${COOKIE_LIFETIME}; Path=/; SameSite=Lax`;
+        }
+
+        function getCssColor(color) {
+            if (color.type === 'HEX') {
+                return color.code;
+            }
+
+            const functionName = color.type.toLowerCase();
+            return `${functionName}(${color.code})`;
+        }
+
+        function renderColors() {
+            colorsList.replaceChildren();
+
+            colors.forEach((color) => {
+                const card = document.createElement('article');
+                card.className = 'color-card';
+                card.style.backgroundColor = getCssColor(color);
+
+                const info = document.createElement('div');
+                info.className = 'color-info';
+
+                const name = document.createElement('strong');
+                name.textContent = color.name;
+
+                const type = document.createElement('span');
+                type.textContent = color.type;
+
+                const code = document.createElement('b');
+                code.textContent = color.code;
+
+                info.append(name, type, code);
+                card.append(info);
+                colorsList.append(card);
+            });
+        }
+
+        function validateName(value) {
+            if (!value) {
+                return 'Color is required';
+            }
+            if (!/^\p{L}+$/u.test(value)) {
+                return 'Color can only contain letters';
+            }
+            if (colors.some((color) => color.name.toLowerCase() === value.toLowerCase())) {
+                return 'This color name already exists';
+            }
+            return '';
+        }
+
+        function parseNumberList(value, expectedLength) {
+            const parts = value.split(',').map((part) => part.trim());
+            if (parts.length !== expectedLength || parts.some((part) => part === '')) {
+                return null;
+            }
+            return parts;
+        }
+
+        function validateAndNormalizeCode(value, type) {
+            if (!value) {
+                return { error: 'Code is required' };
+            }
+
+            if (type === 'HEX') {
+                if (!/^#[0-9A-Fa-f]{6}$/.test(value)) {
+                    return { error: 'HEX code must match #RRGGBB' };
+                }
+                return { code: value.toUpperCase() };
+            }
+
+            const expectedLength = type === 'RGB' ? 3 : 4;
+            const parts = parseNumberList(value, expectedLength);
+            const message = `${type} code must contain ${expectedLength} numbers separated by commas`;
+
+            if (!parts) {
+                return { error: message };
+            }
+
+            const rgbParts = parts.slice(0, 3);
+            const validRgb = rgbParts.every((part) => {
+                if (!/^\d+$/.test(part)) return false;
+                const number = Number(part);
+                return number >= 0 && number <= 255;
+            });
+
+            if (!validRgb) {
+                return { error: `${type}: first 3 numbers must be from 0 to 255` };
+            }
+
+            if (type === 'RGBA') {
+                const alphaText = parts[3];
+                const alpha = Number(alphaText);
+                if (!/^(?:0(?:\.\d+)?|1(?:\.0+)?)$/.test(alphaText) || alpha < 0 || alpha > 1) {
+                    return { error: 'RGBA: alpha must be from 0 to 1' };
+                }
+            }
+
+            return { code: parts.map(Number).join(', ') };
+        }
+
+        function clearErrors() {
+            nameError.textContent = '';
+            codeError.textContent = '';
+            nameInput.classList.remove('invalid');
+            codeInput.classList.remove('invalid');
+        }
+
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+            clearErrors();
+
+            const colorName = nameInput.value.trim();
+            const nameMessage = validateName(colorName);
+            const codeResult = validateAndNormalizeCode(codeInput.value.trim(), typeSelect.value);
+
+            if (nameMessage) {
+                nameError.textContent = nameMessage;
+                nameInput.classList.add('invalid');
+            }
+            if (codeResult.error) {
+                codeError.textContent = codeResult.error;
+                codeInput.classList.add('invalid');
+            }
+            if (nameMessage || codeResult.error) {
+                (nameMessage ? nameInput : codeInput).focus();
+                return;
+            }
+
+            colors.push({
+                name: colorName.toUpperCase(),
+                type: typeSelect.value,
+                code: codeResult.code
+            });
+
+            saveColors();
+            renderColors();
+            form.reset();
+            nameInput.focus();
+        });
+
+        nameInput.addEventListener('input', () => {
+            nameError.textContent = '';
+            nameInput.classList.remove('invalid');
+        });
+
+        codeInput.addEventListener('input', () => {
+            codeError.textContent = '';
+            codeInput.classList.remove('invalid');
+        });
+
+        typeSelect.addEventListener('change', () => {
+            codeInput.value = '';
+            codeError.textContent = '';
+            codeInput.classList.remove('invalid');
+        });
+
+        saveColors();
+        renderColors();
+    </script>
+</body>
+</html>
