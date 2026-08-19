@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Книжный магазин</title>
+    <title>Document</title>
     <link rel="stylesheet" href="forms4.css">
 </head>
 <body>
@@ -70,9 +70,8 @@
 
             <div class="form-row">
                 <label for="delivery-date">Delivery date:</label>
-                <input id="delivery-date" name="deliveryDate" type="text" placeholder="26.07.2018" required>
+               <input id="delivery-date" name="deliveryDate" type="text" placeholder="26.07.2018" required>            
             </div>
-
             <div class="form-row form-row--large">
                 <label for="comment">Comment:</label>
                 <textarea id="comment" name="comment" rows="4"></textarea>
@@ -116,9 +115,12 @@
             }
 
             const data = new FormData(orderForm);
+            const date = new Date(`${data.get('deliveryDate')}T00:00:00`);
+            const formattedDate = new Intl.DateTimeFormat('ru-RU').format(date);
+
             confirmation.textContent = `${data.get('customerName')}, спасибо за заказ. ` +
                 `Товар «${data.get('book')}» в количестве ${data.get('quantity')} шт. ` +
-                `будет доставлен ${data.get('deliveryDate')} по адресу: ${data.get('address')}.`;
+                `будет доставлен ${formattedDate} по адресу: ${data.get('address')}.`;
             confirmation.hidden = false;
             confirmation.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         });
