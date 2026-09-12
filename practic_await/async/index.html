@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+    <script>
+//1
+        function task1() {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve("Task 1 finished");
+    }, 1000);
+  });
+}
+
+function task2() {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve("Task 2 finished");
+    }, 2000);
+  });
+}
+
+function task3() {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve("Task 3 finished");
+    }, 3000);
+  });
+}
+
+async function executeTasks() {
+  const result1 = await task1();
+  console.log(result1);
+
+  const result2 = await task2();
+  console.log(result2);
+
+  const result3 = await task3();
+  console.log(result3);
+}
+
+
+async function final() {
+  await executeTasks();
+  console.log("did evrysing");
+}
+
+final();
+
+
+//2
+
+function sumArrayAsync(array) {
+  return new Promise((resolve, reject) => {
+    if (array.length === 0) {
+      reject("arr empty");
+      return;
+    }
+
+    let sum = 0;
+    let index = 0;
+
+    function addNext() {
+      if (index >= array.length) {
+        resolve(sum);
+        return;
+      }
+      setTimeout(() => {
+        sum += array[index];
+        index++;
+        addNext();
+      }, 1000);
+    }
+
+    addNext();
+  });
+}
+
+async function anathrMain() {
+  try {
+    const result = await sumArrayAsync([4, 5, 6, 7, 8]);
+    console.log("sum arr:", result); 
+  } catch (error) {
+    console.error("errpr:", error);
+  }
+}
+
+anathrMain();
+
+
+async function test() {
+  try {
+    const result = await sumArrayAsync([]);
+    console.log(result);
+  } catch (error) {
+    console.error("error:", error); 
+  }
+}
+
+test();
+    </script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        function GetUserDatails(UserID) {
+            return new Promise ((resolve, reject)=>{
+                setTimeout(()=>{
+                    if (UserID === 1) {
+                        resolve({ id: 1, name: "jone doe"});
+                    } else{
+                        reject("user not fjund");
+                    }
+                }, 1000)
+            })
+        } async function displaiUserDeteils(UserId) {
+            try {
+                const Userdeteils = await GetUserDatails(UserId);
+                console.log("User deteils", Userdeteils);
+            }catch (error){
+                console.error('error', error);
+            }
+            
+        }
+
+displaiUserDeteils(1);
+
+
+
+
+        async function  fetchUser() {
+            setTimeout(()=>{
+                console.log("feching users....");
+            return [User1, User2, User3];
+                    }, 1000);
+        }
+
+        async function  fetchPosr() {
+            setTimeout(()=>{
+                console.log("feching post....");
+            return [post1, post2, post3];
+                    }, 1500);
+        }
+
+        async function  fetchComment() {
+            setTimeout(()=>{
+                console.log("feching Comment....");
+            return [Commen1, Commen2, Commen3];
+                    }, 2000);
+        }
+
+        async function fetchData () {
+
+            const Users  = await fetUser();
+            console.log('Users:', Users);
+
+            const Postrs = await fetchPosr();
+            console.log = ('pots', Postrs);
+
+            const Comment = await fetchComment();
+            console.log = ('COMMENT', Comment);
+        }
+
+
+
+
+
+
+        async function seyHello(){
+            return "Hello"
+        }
+
+        seyHello().then(masange =>
+            console.log(masange));
+
+            async function GetProcessData() {
+                const myPromise = new Promise((resolve, reject) =>{
+                    setTimeout(()=>{
+                        resolve(" даные отрымыни")
+                    }, 2000);
+                })
+
+                console.log("wheiting")
+                const result = await myPromise;
+                console.log(result);
+            }
+
+
+            // GetProcessData();
+    </script>
+</body>
+</html>
