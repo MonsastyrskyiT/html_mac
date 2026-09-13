@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Callback і Promise — практичні завдання</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 36px 18px;
+      color: #202438;
+      background: #f2f5fb;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    main {
+      width: min(920px, 100%);
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin: 0 0 26px;
+      color: #18213d;
+      font-size: clamp(28px, 5vw, 42px);
+    }
+
+    .tasks {
+      display: grid;
+      gap: 20px;
+    }
+
+    section {
+      padding: 24px;
+      background: #fff;
+      border: 1px solid #dfe4ef;
+      border-radius: 14px;
+      box-shadow: 0 7px 24px rgb(31 46 88 / 8%);
+    }
+
+    h2 {
+      margin: 0 0 16px;
+      color: #3156b7;
+      font-size: 23px;
+    }
+
+    p {
+      margin: 9px 0;
+      line-height: 1.55;
+    }
+
+    code {
+      padding: 2px 6px;
+      color: #273b7a;
+      background: #eef2ff;
+      border-radius: 4px;
+      font: 0.95em Menlo, Monaco, Consolas, monospace;
+    }
+
+    .result {
+      margin-top: 14px;
+      padding: 14px 16px;
+      overflow-wrap: anywhere;
+      background: #f7f9fd;
+      border-left: 4px solid #3156b7;
+      border-radius: 5px;
+      font-family: Menlo, Monaco, Consolas, monospace;
+      line-height: 1.6;
+    }
+
+    .steps {
+      min-height: 104px;
+      margin: 14px 0 0;
+      padding: 14px 14px 14px 38px;
+      background: #f7f9fd;
+      border-radius: 7px;
+      line-height: 1.7;
+    }
+
+    .steps li::marker {
+      color: #3156b7;
+    }
+
+    button {
+      margin-top: 14px;
+      padding: 11px 18px;
+      color: #fff;
+      background: #3156b7;
+      border: 0;
+      border-radius: 7px;
+      font: 700 15px Arial, sans-serif;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #254493;
+    }
+
+    button:disabled {
+      cursor: wait;
+      opacity: 0.65;
+    }
+
+    .error {
+      color: #b42318;
+      border-left-color: #b42318;
+    }
+
+    @media (max-width: 560px) {
+      body {
+        padding: 22px 12px;
+      }
+
+      section {
+        padding: 19px 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Callback і Promise</h1>
+
+    <div class="tasks">
+      <section>
+        <h2>Завдання 1 — обробка масиву</h2>
+        <p>Початковий масив: <code id="source-array"></code></p>
+        <div class="result" id="process-result"></div>
+      </section>
+
+      <section>
+        <h2>Завдання 2 — фільтрація масиву</h2>
+        <div class="result" id="filter-result"></div>
+      </section>
+
+      <section>
+        <h2>Завдання 3 — послідовний ланцюжок Promise</h2>
+        <p>Завдання виконуються по черзі: миття посуду → прибирання → приготування вечері.</p>
+        <button id="chores-button" type="button">Почати виконання</button>
+        <ol class="steps" id="chores-result" aria-live="polite"></ol>
+      </section>
+
+      <section>
+        <h2>Завдання 4 — сортування з Promise</h2>
+        <p>Масив для сортування: <code>[8, 3, 10, 1, 5]</code></p>
+        <button id="sort-button" type="button">Сортувати масив</button>
+        <div class="result" id="sort-result" aria-live="polite">Натисніть кнопку для перевірки.</div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    //1
+    function processArray(array, callback) {
+      const result = [];
+
+      for (const element of array) {
+        result.push(callback(element));
+      }
+
+      return result;
+    }
+
+    function doubleElement(element) {
+      return element * 2;
+    }
+
+    function reverseElement(element) {
+      return String(element).split('').reverse().join('');
+    }
+
+    const numbers = [12, 34, 56, 78];
+    const doubledNumbers = processArray(numbers, doubleElement);
+    const reversedNumbers = processArray(numbers, reverseElement);
+
+    document.querySelector('#source-array').textContent = JSON.stringify(numbers);
+    document.querySelector('#process-result').innerHTML =
+      `doubleElement: ${JSON.stringify(doubledNumbers)}<br>` +
+      `reverseElement: ${JSON.stringify(reversedNumbers)}`;
+
+    console.log('Подвоєні елементи:', doubledNumbers);
+    console.log('Розвернуті елементи:', reversedNumbers);
+
+    // Завдання 2
+    function filterArray(array, callback) {
+      const result = [];
+
+      for (const element of array) {
+        if (callback(element)) {
+          result.push(element);
+        }
+      }
+
+      return result;
+    }
+
+    function isEven(number) {
+      return number % 2 === 0;
+    }
+
+    function isShortWord(word) {
+      return word.length <= 4;
+    }
+
+    const numberList = [1, 2, 3, 4, 5, 6, 7, 8];
+    const wordList = ['кіт', 'море', 'сонце', 'дім', 'книга'];
+    const evenNumbers = filterArray(numberList, isEven);
+    const shortWords = filterArray(wordList, isShortWord);
+
+    document.querySelector('#filter-result').innerHTML =
+      `Парні числа: ${JSON.stringify(evenNumbers)}<br>` +
+      `Короткі слова: ${JSON.stringify(shortWords)}`;
+
+    console.log('Парні числа:', evenNumbers);
+    console.log('Короткі слова:', shortWords);
+
+    //3
+    function washDishes() {
+      return new Promise((resolve) => {
+        setTimeout(() => resolve('Посуд вимито'), 2000);
+      });
+    }
+
+    function cleanRoom() {
+      return new Promise((resolve) => {
+        setTimeout(() => resolve('Кімнату прибрано'), 4000);
+      });
+    }
+
+    function makeDinner() {
+      return new Promise((resolve) => {
+        setTimeout(() => resolve('Вечеря приготована'), 7000);
+      });
+    }
+
+    const choresButton = document.querySelector('#chores-button');
+    const choresResult = document.querySelector('#chores-result');
+
+    function addChoreResult(text) {
+      const item = document.createElement('li');
+      item.textContent = text;
+      choresResult.append(item);
+      console.log(text);
+    }
+
+    function runChores() {
+      choresResult.replaceChildren();
+      choresButton.disabled = true;
+      choresButton.textContent = 'Виконується...';
+
+      washDishes()
+        .then((message) => {
+          addChoreResult(message);
+          return cleanRoom();
+        })
+        .then((message) => {
+          addChoreResult(message);
+          return makeDinner();
+        })
+        .then((message) => {
+          addChoreResult(message);
+        })
+        .catch((error) => {
+          addChoreResult(`Помилка: ${error.message}`);
+        })
+        .finally(() => {
+          choresButton.disabled = false;
+          choresButton.textContent = 'Повторити виконання';
+        });
+    }
+
+    choresButton.addEventListener('click', runChores);
+
+    //4
+    function sortArray(array) {
+      return new Promise((resolve, reject) => {
+        if (array.length === 0) {
+          reject(new Error('Масив порожній'));
+          return;
+        }
+
+        setTimeout(() => {
+          const sortedArray = [...array].sort((a, b) => a - b);
+          resolve(sortedArray);
+        }, 2000);
+      });
+    }
+
+    const sortButton = document.querySelector('#sort-button');
+    const sortResult = document.querySelector('#sort-result');
+
+    sortButton.addEventListener('click', () => {
+      sortButton.disabled = true;
+      sortResult.classList.remove('error');
+      sortResult.textContent = 'Сортування...';
+
+      sortArray([8, 3, 10, 1, 5])
+        .then((sortedArray) => {
+          sortResult.textContent = `Відсортований масив: ${JSON.stringify(sortedArray)}`;
+          console.log('Відсортований масив:', sortedArray);
+        })
+        .catch((error) => {
+          sortResult.textContent = error.message;
+          sortResult.classList.add('error');
+          console.error(error.message);
+        })
+        .finally(() => {
+          sortButton.disabled = false;
+        });
+    });
+
+    sortArray([]).catch((error) => console.error(error.message));
+  </script>
+</body>
+</html>
