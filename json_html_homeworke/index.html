@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Переглядач JSON-файлів</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: #161616;
+      background: #fff;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .container {
+      width: min(1000px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 42px 0 60px;
+    }
+
+    h1 {
+      margin: 0 0 20px;
+      font-size: clamp(30px, 4vw, 42px);
+    }
+
+    .description {
+      max-width: 950px;
+      margin: 0 0 18px;
+      font-size: clamp(18px, 2.3vw, 28px);
+      line-height: 1.35;
+    }
+
+    h2 {
+      margin: 0 0 24px 16px;
+      font-size: clamp(22px, 3vw, 30px);
+    }
+
+    .upload-area {
+      display: flex;
+      min-height: 96px;
+      align-items: center;
+      justify-content: center;
+      margin: 0 16px 24px;
+      padding: 20px;
+      border: 3px dashed #c9c9c9;
+      border-radius: 12px;
+      background: #fff;
+      transition: border-color 0.2s, background-color 0.2s;
+    }
+
+    .upload-area.is-dragging {
+      border-color: #287bd8;
+      background: #f2f8ff;
+    }
+
+    input[type="file"] {
+      max-width: 100%;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    input[type="file"]::file-selector-button {
+      margin-right: 8px;
+      padding: 5px 10px;
+      color: #202020;
+      background: #f5f5f5;
+      border: 1px solid #888;
+      border-radius: 3px;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    input[type="file"]::file-selector-button:hover {
+      background: #e8e8e8;
+    }
+
+    .message {
+      min-height: 24px;
+      margin: -10px 16px 14px;
+      color: #b42318;
+      font-weight: 700;
+    }
+
+    .message:empty {
+      display: none;
+    }
+
+    .table-wrap {
+      margin: 0 16px;
+      overflow-x: auto;
+      border: 1px solid #d8d8d8;
+      box-shadow: 0 2px 4px rgb(0 0 0 / 8%);
+    }
+
+    .table-wrap[hidden] {
+      display: none;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 18px;
+    }
+
+    th,
+    td {
+      padding: 15px;
+      vertical-align: middle;
+      text-align: left;
+      border-right: 1px solid #ddd;
+      border-bottom: 1px solid #ddd;
+      overflow-wrap: anywhere;
+    }
+
+    th:last-child,
+    td:last-child {
+      border-right: 0;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: 0;
+    }
+
+    th {
+      background: #f6f7f8;
+      font-weight: 700;
+    }
+
+    td:first-child,
+    th:first-child {
+      width: 50%;
+    }
+
+    .complex-value {
+      display: block;
+      margin: 0;
+      color: #0875db;
+      font: 15px/1.35 Menlo, Monaco, Consolas, "Courier New", monospace;
+      white-space: pre-wrap;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        width: min(100% - 20px, 1000px);
+        padding-top: 24px;
+      }
+
+      h2,
+      .upload-area,
+      .message,
+      .table-wrap {
+        margin-left: 0;
+        margin-right: 0;
+      }
+
+      table {
+        font-size: 15px;
+      }
+
+      th,
+      td {
+        padding: 11px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <section aria-labelledby="viewer-title">
+      <h2 id="viewer-title">Переглядач JSON-файлів</h2>
+
+      <div class="upload-area" id="upload-area">
+        <input
+          id="json-file"
+          type="file"
+          accept=".json,application/json"
+          aria-describedby="message"
+        >
+      </div>
+
+      <p class="message" id="message" role="alert" aria-live="polite"></p>
+
+      <div class="table-wrap" id="table-wrap" hidden>
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Поле (Ключ)</th>
+              <th scope="col">Значення</th>
+            </tr>
+          </thead>
+          <tbody id="json-table-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const fileInput = document.querySelector('#json-file');
+    const uploadArea = document.querySelector('#upload-area');
+    const message = document.querySelector('#message');
+    const tableWrap = document.querySelector('#table-wrap');
+    const tableBody = document.querySelector('#json-table-body');
+
+    function showError(text) {
+      message.textContent = text;
+      tableBody.replaceChildren();
+      tableWrap.hidden = true;
+    }
+
+    function valueToElement(value) {
+      if (value !== null && typeof value === 'object') {
+        const code = document.createElement('pre');
+        code.className = 'complex-value';
+        code.textContent = JSON.stringify(value, null, 2);
+        return code;
+      }
+
+      const text = document.createElement('span');
+      text.textContent = value === null ? 'null' : String(value);
+      return text;
+    }
+
+    function renderTable(data) {
+      tableBody.replaceChildren();
+
+      const entries = data !== null && typeof data === 'object'
+        ? Object.entries(data)
+        : [['Значення', data]];
+
+      if (entries.length === 0) {
+        showError('JSON-файл не містить полів для відображення.');
+        return;
+      }
+
+      const rows = entries.map(([key, value]) => {
+        const row = document.createElement('tr');
+        const keyCell = document.createElement('td');
+        const valueCell = document.createElement('td');
+
+        keyCell.textContent = key;
+        valueCell.append(valueToElement(value));
+        row.append(keyCell, valueCell);
+
+        return row;
+      });
+
+      tableBody.append(...rows);
+      tableWrap.hidden = false;
+    }
+
+    function readJsonFile(file) {
+      message.textContent = '';
+
+      if (!file) {
+        tableBody.replaceChildren();
+        tableWrap.hidden = true;
+        return;
+      }
+
+      if (!file.name.toLowerCase().endsWith('.json')) {
+        fileInput.value = '';
+        showError('Будь ласка, виберіть файл у форматі JSON.');
+        return;
+      }
+
+      const reader = new FileReader();
+
+      reader.addEventListener('load', () => {
+        try {
+          const data = JSON.parse(reader.result);
+          renderTable(data);
+        } catch (error) {
+          showError('Не вдалося прочитати файл: некоректний формат JSON.');
+        }
+      });
+
+      reader.addEventListener('error', () => {
+        showError('Сталася помилка під час читання файлу.');
+      });
+
+      reader.readAsText(file, 'UTF-8');
+    }
+
+    fileInput.addEventListener('change', () => {
+      readJsonFile(fileInput.files[0]);
+    });
+
+    ['dragenter', 'dragover'].forEach((eventName) => {
+      uploadArea.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        uploadArea.classList.add('is-dragging');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach((eventName) => {
+      uploadArea.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        uploadArea.classList.remove('is-dragging');
+      });
+    });
+
+    uploadArea.addEventListener('drop', (event) => {
+      const [file] = event.dataTransfer.files;
+      readJsonFile(file);
+    });
+  </script>
+</body>
+</html>
