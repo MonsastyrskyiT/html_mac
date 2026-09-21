@@ -1,11 +1,240 @@
+1 file changed
++238
+-0
+asinkHM/index.html
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>document</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      padding: 40px 18px;
+      color: #22283b;
+      background: #f2f5fa;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    main {
+      width: min(820px, 100%);
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin: 0 0 28px;
+      color: #152044;
+      font-size: clamp(30px, 5vw, 43px);
+    }
+
+    .tasks {
+      display: grid;
+      gap: 22px;
+    }
+
+    section {
+      padding: 25px;
+      background: #fff;
+      border: 1px solid #dce2ee;
+      border-radius: 14px;
+      box-shadow: 0 7px 22px rgb(31 48 90 / 8%);
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      color: #3158b5;
+      font-size: 23px;
+    }
+
+    p {
+      margin: 8px 0;
+      line-height: 1.5;
+    }
+
+    code {
+      padding: 2px 6px;
+      color: #28438e;
+      background: #eef2ff;
+      border-radius: 4px;
+      font: 0.95em Menlo, Monaco, Consolas, monospace;
+    }
+
+    .result {
+      min-height: 52px;
+      margin-top: 16px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      overflow-wrap: anywhere;
+      background: #f7f9fd;
+      border-left: 4px solid #3158b5;
+      border-radius: 6px;
+      font-family: Menlo, Monaco, Consolas, monospace;
+    }
+
+    .result.loading {
+      color: #65708b;
+    }
+
+    .result.error {
+      color: #b42318;
+      border-left-color: #b42318;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 10px 17px;
+      color: #fff;
+      background: #3158b5;
+      border: 0;
+      border-radius: 7px;
+      font: 700 15px Arial, sans-serif;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #244490;
+    }
+
+    button:disabled {
+      cursor: wait;
+      opacity: 0.65;
+    }
+
+    @media (max-width: 520px) {
+      body {
+        padding: 24px 12px;
+      }
+
+      section {
+        padding: 20px 16px;
+      }
+    }
+  </style>
 </head>
 <body>
-    
+  <main>
+    <h1>Асинхронні завдання</h1>
+
+    <div class="tasks">
+      <section>
+        <h2>Завдання 1 — множення</h2>
+        <p>Обчислення: <code>6 × 9</code></p>
+        <button id="multiply-button" type="button">Обчислити ще раз</button>
+        <div class="result loading" id="multiply-result" aria-live="polite">
+          Обчислення триває 2 секунди...
+        </div>
+      </section>
+
+      <section>
+        <h2>Завдання 2 — сортування масиву</h2>
+        <p>Початковий масив: <code>[12, 3, 8, 1, 25, 6]</code></p>
+        <button id="sort-button" type="button">Сортувати ще раз</button>
+        <div class="result loading" id="sort-result" aria-live="polite">
+          Сортування триває 2 секунди...
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const multiplyResult = document.querySelector('#multiply-result');
+    const sortResult = document.querySelector('#sort-result');
+    const multiplyButton = document.querySelector('#multiply-button');
+    const sortButton = document.querySelector('#sort-button');
+
+    // Завдання 1
+    function multiplyAsync(a, b) {
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          const valuesAreNumbers =
+            typeof a === 'number' &&
+            typeof b === 'number' &&
+            Number.isFinite(a) &&
+            Number.isFinite(b);
+
+          if (!valuesAreNumbers) {
+            reject(new Error('Некоректні значення'));
+            return;
+          }
+
+          resolve(a * b);
+        }, 2000);
+      });
+    }
+
+    async function runMultiplication() {
+      multiplyButton.disabled = true;
+      multiplyResult.className = 'result loading';
+      multiplyResult.textContent = 'Обчислення триває 2 секунди...';
+
+      try {
+        const result = await multiplyAsync(6, 9);
+        multiplyResult.className = 'result';
+        multiplyResult.textContent = `Результат множення: ${result}`;
+        console.log('Результат множення:', result);
+      } catch (error) {
+        multiplyResult.className = 'result error';
+        multiplyResult.textContent = error.message;
+        console.error(error.message);
+      } finally {
+        multiplyButton.disabled = false;
+      }
+    }
+
+    // Завдання 2
+    function sortArrayAsync(array) {
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          if (array.length === 0) {
+            reject(new Error('Масив порожній'));
+            return;
+          }
+
+          const sortedArray = [...array].sort((a, b) => a - b);
+          resolve(sortedArray);
+        }, 2000);
+      });
+    }
+
+    async function runSorting() {
+      const numbers = [12, 3, 8, 1, 25, 6];
+
+      sortButton.disabled = true;
+      sortResult.className = 'result loading';
+      sortResult.textContent = 'Сортування триває 2 секунди...';
+
+      try {
+        const sortedArray = await sortArrayAsync(numbers);
+        sortResult.className = 'result';
+        sortResult.textContent = `Відсортований масив: ${JSON.stringify(sortedArray)}`;
+        console.log('Відсортований масив:', sortedArray);
+      } catch (error) {
+        sortResult.className = 'result error';
+        sortResult.textContent = error.message;
+        console.error(error.message);
+      } finally {
+        sortButton.disabled = false;
+      }
+    }
+
+    async function main() {
+      await Promise.all([runMultiplication(), runSorting()]);
+    }
+
+    multiplyButton.addEventListener('click', runMultiplication);
+    sortButton.addEventListener('click', runSorting);
+
+    main();
+
+    multiplyAsync('6', 9).catch((error) => console.error(error.message));
+    sortArrayAsync([]).catch((error) => console.error(error.message));
+  </script>
 </body>
 </html>
