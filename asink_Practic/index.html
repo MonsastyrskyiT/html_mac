@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+</head>
+<body>
+	<h1>Практика асинхронності</h1>
+	<pre id="output" aria-live="polite"></pre>
+
+	<script>
+		const output = document.querySelector("#output");
+
+		function log(message) {
+			console.log(message);
+			output.textContent += `${message}\n`;
+		}
+
+		function task1() {
+			return new Promise((resolve) => {
+				setTimeout(() => resolve("Task 1 завершено"), 1000);
+			});
+		}
+
+		function task2() {
+			return new Promise((resolve) => {
+				setTimeout(() => resolve("Task 2 завершено"), 2000);
+			});
+		}
+
+		function task3() {
+			return new Promise((resolve) => {
+				setTimeout(() => resolve("Task 3 завершено"), 3000);
+			});
+		}
+
+		async function executeTasks() {
+			log("Завдання 1:");
+			log(await task1());
+			log(await task2());
+			log(await task3());
+		}
+
+		async function sumArrayAsync(array) {
+			if (array.length === 0) {
+				throw new Error("Масив порожній");
+			}
+
+			let sum = 0;
+			for (const number of array) {
+				await new Promise((resolve) => setTimeout(resolve, 1000));
+				sum += number;
+			}
+
+			return sum;
+		}
+
+		async function main() {
+			try {
+				const numbers = [1, 2, 3, 4, 5];
+				const sum = await sumArrayAsync(numbers);
+				log(`Сума масиву [${numbers.join(", ")}]: ${sum}`);
+			} catch (error) {
+				log(`Помилка: ${error.message}`);
+			}
+		}
+
+		async function run() {
+			await executeTasks();
+			await main();
+		}
+
+		run();
+	</script>
+</body>
+</html>
