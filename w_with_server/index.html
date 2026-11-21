@@ -1,0 +1,763 @@
+1 file changed
++759
+-0
+w_with_server/index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Movie Search</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --page: #ffffff;
+      --surface: #fff7ef;
+      --card: #ffffff;
+      --text: #202020;
+      --muted: #6b6b6b;
+      --line: #c9c9c9;
+      --button: #e4e4e4;
+      --accent: #a94f2c;
+      --accent-dark: #82391e;
+      --error: #a61b1b;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      padding: 38px 18px;
+      color: var(--text);
+      background: var(--page);
+      font-family: Georgia, "Times New Roman", serif;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    .app {
+      width: min(1280px, 100%);
+      margin: 0 auto;
+      padding: 36px clamp(18px, 4vw, 54px) 46px;
+      background: var(--surface);
+    }
+
+    h1,
+    h2 {
+      margin: 0;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 28px;
+      font-size: clamp(30px, 4vw, 43px);
+    }
+
+    h2 {
+      margin-bottom: 24px;
+      font-size: 26px;
+    }
+
+    .search-form {
+      width: min(760px, 100%);
+      margin: 0 auto;
+      padding: 32px;
+      border: 2px solid var(--line);
+      border-radius: 12px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 135px minmax(0, 1fr);
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+
+    label {
+      font-size: 25px;
+      font-weight: 700;
+    }
+
+    input,
+    select {
+      width: 100%;
+      min-height: 48px;
+      padding: 8px 14px;
+      color: var(--text);
+      background: #fff;
+      border: 2px solid #aaa;
+      border-radius: 6px;
+      font-size: 21px;
+    }
+
+    input:focus,
+    select:focus,
+    button:focus-visible {
+      outline: 3px solid rgb(169 79 44 / 30%);
+      outline-offset: 2px;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .search-button,
+    .details-button {
+      min-height: 46px;
+      border: 1px solid #999;
+      border-radius: 5px;
+      background: var(--button);
+      transition: background-color 0.15s, color 0.15s;
+    }
+
+    .search-button {
+      width: 100%;
+      font-size: 22px;
+    }
+
+    .search-button:hover,
+    .details-button:hover,
+    .page-button:hover:not(:disabled) {
+      color: #fff;
+      background: var(--accent);
+    }
+
+    .search-button:disabled,
+    .details-button:disabled {
+      cursor: wait;
+      opacity: 0.65;
+    }
+
+    .message {
+      width: min(760px, 100%);
+      min-height: 24px;
+      margin: 16px auto 0;
+      color: var(--error);
+      text-align: center;
+      font: 700 19px Arial, Helvetica, sans-serif;
+    }
+
+    .message:empty {
+      display: none;
+    }
+
+    .results-section {
+      margin-top: 44px;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    .movies {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 22px;
+    }
+
+    .movie-card {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: 150px minmax(0, 1fr);
+      gap: 20px;
+      min-height: 245px;
+      padding: 16px;
+      background: var(--card);
+      border: 2px solid var(--line);
+      border-radius: 10px;
+    }
+
+    .poster,
+    .poster-placeholder {
+      width: 150px;
+      height: 211px;
+      border-radius: 4px;
+    }
+
+    .poster {
+      display: block;
+      object-fit: cover;
+      background: #eee;
+    }
+
+    .poster-placeholder {
+      display: grid;
+      place-items: center;
+      padding: 12px;
+      color: #777;
+      background: #e8e8e8;
+      text-align: center;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .movie-content {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .movie-type {
+      margin: 1px 0 12px;
+      color: var(--muted);
+      font-size: 18px;
+      text-transform: capitalize;
+    }
+
+    .movie-title {
+      margin: 0 0 15px;
+      overflow-wrap: anywhere;
+      font-size: 23px;
+      line-height: 1.15;
+    }
+
+    .movie-year {
+      margin: auto 0 14px;
+      font-size: 25px;
+    }
+
+    .details-button {
+      width: 100%;
+      font-size: 19px;
+    }
+
+    .pagination {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 5px;
+      margin-top: 28px;
+    }
+
+    .page-button {
+      min-width: 44px;
+      min-height: 42px;
+      padding: 6px 11px;
+      border: 1px solid #999;
+      border-radius: 4px;
+      background: var(--button);
+      font-size: 18px;
+    }
+
+    .page-button.active {
+      color: #fff;
+      background: var(--accent);
+      border-color: var(--accent-dark);
+      font-weight: 700;
+    }
+
+    .page-button:disabled:not(.active) {
+      cursor: default;
+      opacity: 0.45;
+    }
+
+    .details-section {
+      margin-top: 48px;
+    }
+
+    .details-card {
+      display: grid;
+      grid-template-columns: minmax(230px, 360px) minmax(0, 1fr);
+      gap: clamp(24px, 4vw, 48px);
+      padding: 22px;
+      background: var(--card);
+      border: 2px solid var(--line);
+      border-radius: 10px;
+    }
+
+    .details-poster,
+    .details-poster-placeholder {
+      width: 100%;
+      max-height: 530px;
+      border-radius: 5px;
+    }
+
+    .details-poster {
+      display: block;
+      object-fit: contain;
+      object-position: top;
+      background: #eee;
+    }
+
+    .details-poster-placeholder {
+      min-height: 380px;
+      display: grid;
+      place-items: center;
+      color: #777;
+      background: #e8e8e8;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .details-list {
+      display: grid;
+      grid-template-columns: 125px minmax(0, 1fr);
+      align-content: start;
+      gap: 22px 18px;
+      margin: 16px 0 0;
+      font-size: 20px;
+      line-height: 1.35;
+    }
+
+    .details-list dt {
+      font-weight: 700;
+    }
+
+    .details-list dd {
+      min-width: 0;
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .loading {
+      grid-column: 1 / -1;
+      padding: 40px;
+      color: var(--muted);
+      text-align: center;
+      font: 700 20px Arial, Helvetica, sans-serif;
+    }
+
+    @media (max-width: 1080px) {
+      .movies {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 720px) {
+      .movies {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 650px) {
+      body {
+        padding: 0;
+      }
+
+      .app {
+        min-height: 100vh;
+        padding: 25px 14px 38px;
+      }
+
+      .search-form {
+        padding: 20px 16px;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+        gap: 7px;
+        margin-bottom: 16px;
+      }
+
+      label {
+        font-size: 20px;
+      }
+
+      input,
+      select {
+        font-size: 18px;
+      }
+
+      .movie-card {
+        grid-template-columns: 105px minmax(0, 1fr);
+        gap: 14px;
+        min-height: 190px;
+        padding: 12px;
+      }
+
+      .poster,
+      .poster-placeholder {
+        width: 105px;
+        height: 156px;
+      }
+
+      .movie-title {
+        font-size: 19px;
+      }
+
+      .movie-year {
+        font-size: 20px;
+      }
+
+      .details-card {
+        grid-template-columns: 1fr;
+        padding: 15px;
+      }
+
+      .details-poster,
+      .details-poster-placeholder {
+        width: min(300px, 100%);
+        margin: 0 auto;
+      }
+
+      .details-list {
+        grid-template-columns: 90px minmax(0, 1fr);
+        gap: 16px 10px;
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>Search:</h1>
+
+    <form class="search-form" id="search-form">
+      <div class="form-row">
+        <label for="title">Title:</label>
+        <input id="title" name="title" type="search" autocomplete="off" required>
+      </div>
+
+      <div class="form-row">
+        <label for="type">Type:</label>
+        <select id="type" name="type">
+          <option value="movie">Movie</option>
+          <option value="series">Series</option>
+          <option value="episode">Episode</option>
+        </select>
+      </div>
+
+      <button class="search-button" id="search-button" type="submit">Search</button>
+    </form>
+
+    <p class="message" id="message" role="alert" aria-live="polite"></p>
+
+    <section class="results-section" id="results-section" aria-labelledby="films-title" hidden>
+      <h2 id="films-title">Films:</h2>
+      <div class="movies" id="movies"></div>
+      <nav class="pagination" id="pagination" aria-label="Search result pages"></nav>
+    </section>
+
+    <section class="details-section" id="details-section" aria-labelledby="details-title" hidden>
+      <h2 id="details-title">Film info:</h2>
+      <div id="details"></div>
+    </section>
+  </main>
+
+  <script>
+    // Отримайте безкоштовний ключ на https://www.omdbapi.com/apikey.aspx
+    // та вставте його між лапками замість YOUR_OMDB_API_KEY.
+    const API_KEY = 'YOUR_OMDB_API_KEY';
+    const API_URL = 'https://www.omdbapi.com/';
+
+    const searchForm = document.querySelector('#search-form');
+    const titleInput = document.querySelector('#title');
+    const typeSelect = document.querySelector('#type');
+    const searchButton = document.querySelector('#search-button');
+    const message = document.querySelector('#message');
+    const resultsSection = document.querySelector('#results-section');
+    const moviesContainer = document.querySelector('#movies');
+    const pagination = document.querySelector('#pagination');
+    const detailsSection = document.querySelector('#details-section');
+    const detailsContainer = document.querySelector('#details');
+
+    const state = {
+      query: '',
+      type: 'movie',
+      page: 1,
+      totalPages: 0,
+      requestController: null
+    };
+
+    function hasApiKey() {
+      return API_KEY && API_KEY !== 'YOUR_OMDB_API_KEY';
+    }
+
+    function createPoster(url, className) {
+      if (url && url !== 'N/A' && /^https?:\/\//i.test(url)) {
+        const image = document.createElement('img');
+        image.className = className;
+        image.src = url;
+        image.alt = '';
+        image.loading = 'lazy';
+        image.addEventListener('error', () => {
+          const placeholder = createPoster('', className);
+          image.replaceWith(placeholder);
+        }, { once: true });
+        return image;
+      }
+
+      const placeholder = document.createElement('div');
+      placeholder.className = className.includes('details')
+        ? 'details-poster-placeholder'
+        : 'poster-placeholder';
+      placeholder.textContent = 'No poster';
+      return placeholder;
+    }
+
+    function showMessage(text) {
+      message.textContent = text;
+    }
+
+    function setSearching(isSearching) {
+      searchButton.disabled = isSearching;
+      searchButton.textContent = isSearching ? 'Searching...' : 'Search';
+    }
+
+    function clearDetails() {
+      detailsContainer.replaceChildren();
+      detailsSection.hidden = true;
+    }
+
+    function createMovieCard(movie) {
+      const card = document.createElement('article');
+      card.className = 'movie-card';
+
+      const poster = createPoster(movie.Poster, 'poster');
+      const content = document.createElement('div');
+      content.className = 'movie-content';
+
+      const type = document.createElement('p');
+      type.className = 'movie-type';
+      type.textContent = movie.Type;
+
+      const title = document.createElement('h3');
+      title.className = 'movie-title';
+      title.textContent = movie.Title;
+
+      const year = document.createElement('p');
+      year.className = 'movie-year';
+      year.textContent = movie.Year;
+
+      const button = document.createElement('button');
+      button.className = 'details-button';
+      button.type = 'button';
+      button.dataset.imdbId = movie.imdbID;
+      button.textContent = 'Details';
+
+      content.append(type, title, year, button);
+      card.append(poster, content);
+      return card;
+    }
+
+    function renderMovies(movies) {
+      const cards = movies.map(createMovieCard);
+      moviesContainer.replaceChildren(...cards);
+      resultsSection.hidden = false;
+    }
+
+    function getVisiblePages(currentPage, totalPages) {
+      const visibleCount = Math.min(7, totalPages);
+      let start = Math.max(1, currentPage - Math.floor(visibleCount / 2));
+      let end = start + visibleCount - 1;
+
+      if (end > totalPages) {
+        end = totalPages;
+        start = Math.max(1, end - visibleCount + 1);
+      }
+
+      return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+    }
+
+    function createPageButton(label, page, options = {}) {
+      const button = document.createElement('button');
+      button.className = 'page-button';
+      button.type = 'button';
+      button.dataset.page = page;
+      button.textContent = label;
+      button.disabled = options.disabled || false;
+
+      if (options.active) {
+        button.classList.add('active');
+        button.setAttribute('aria-current', 'page');
+      }
+
+      return button;
+    }
+
+    function renderPagination() {
+      pagination.replaceChildren();
+
+      if (state.totalPages <= 1) {
+        return;
+      }
+
+      const fragment = document.createDocumentFragment();
+      fragment.append(createPageButton('«', state.page - 1, {
+        disabled: state.page === 1
+      }));
+
+      for (const page of getVisiblePages(state.page, state.totalPages)) {
+        fragment.append(createPageButton(page, page, {
+          active: page === state.page
+        }));
+      }
+
+      fragment.append(createPageButton('»', state.page + 1, {
+        disabled: state.page === state.totalPages
+      }));
+      pagination.append(fragment);
+    }
+
+    async function requestFromOmdb(parameters) {
+      if (!hasApiKey()) {
+        throw new Error('Add your OMDb API key to the API_KEY constant in index.html.');
+      }
+
+      if (state.requestController) {
+        state.requestController.abort();
+      }
+
+      state.requestController = new AbortController();
+      const url = new URL(API_URL);
+      url.search = new URLSearchParams({
+        apikey: API_KEY,
+        ...parameters
+      });
+
+      const response = await fetch(url, {
+        signal: state.requestController.signal
+      });
+
+      if (!response.ok) {
+        throw new Error(`Request failed (${response.status}).`);
+      }
+
+      return response.json();
+    }
+
+    async function searchMovies(page = 1) {
+      setSearching(true);
+      showMessage('');
+      clearDetails();
+      resultsSection.hidden = false;
+      pagination.replaceChildren();
+      moviesContainer.innerHTML = '<p class="loading">Loading...</p>';
+
+      try {
+        const data = await requestFromOmdb({
+          s: state.query,
+          type: state.type,
+          page: String(page)
+        });
+
+        if (data.Response === 'False' || !Array.isArray(data.Search)) {
+          moviesContainer.replaceChildren();
+          resultsSection.hidden = true;
+          showMessage(data.Error === 'Movie not found!'
+            ? 'Movie not found!'
+            : data.Error || 'Movie not found!');
+          return;
+        }
+
+        state.page = page;
+        // OMDb віддає по 10 результатів і підтримує сторінки від 1 до 100.
+        state.totalPages = Math.min(100, Math.ceil(Number(data.totalResults) / 10));
+        renderMovies(data.Search);
+        renderPagination();
+      } catch (error) {
+        if (error.name === 'AbortError') {
+          return;
+        }
+
+        moviesContainer.replaceChildren();
+        resultsSection.hidden = true;
+        showMessage(error.message || 'Unable to load movies.');
+      } finally {
+        setSearching(false);
+      }
+    }
+
+    function addDetailRow(list, label, value) {
+      const term = document.createElement('dt');
+      const description = document.createElement('dd');
+      term.textContent = `${label}:`;
+      description.textContent = value && value !== 'N/A' ? value : '—';
+      list.append(term, description);
+    }
+
+    function renderDetails(movie) {
+      const card = document.createElement('article');
+      card.className = 'details-card';
+      const poster = createPoster(movie.Poster, 'details-poster');
+      const list = document.createElement('dl');
+      list.className = 'details-list';
+
+      addDetailRow(list, 'Title', movie.Title);
+      addDetailRow(list, 'Released', movie.Released);
+      addDetailRow(list, 'Genre', movie.Genre);
+      addDetailRow(list, 'Country', movie.Country);
+      addDetailRow(list, 'Director', movie.Director);
+      addDetailRow(list, 'Writer', movie.Writer);
+      addDetailRow(list, 'Actors', movie.Actors);
+      addDetailRow(list, 'Awards', movie.Awards);
+      addDetailRow(list, 'Plot', movie.Plot);
+      addDetailRow(list, 'IMDb rating', movie.imdbRating);
+
+      card.append(poster, list);
+      detailsContainer.replaceChildren(card);
+      detailsSection.hidden = false;
+      detailsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    async function loadDetails(imdbId, button) {
+      button.disabled = true;
+      button.textContent = 'Loading...';
+      showMessage('');
+
+      try {
+        const movie = await requestFromOmdb({
+          i: imdbId,
+          plot: 'full'
+        });
+
+        if (movie.Response === 'False') {
+          throw new Error(movie.Error || 'Unable to load film details.');
+        }
+
+        renderDetails(movie);
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          showMessage(error.message || 'Unable to load film details.');
+        }
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Details';
+      }
+    }
+
+    searchForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const query = titleInput.value.trim();
+
+      if (!query) {
+        showMessage('Enter a movie title.');
+        titleInput.focus();
+        return;
+      }
+
+      state.query = query;
+      state.type = typeSelect.value;
+      searchMovies(1);
+    });
+
+    pagination.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-page]');
+
+      if (!button || button.disabled) {
+        return;
+      }
+
+      const page = Number(button.dataset.page);
+
+      if (page !== state.page) {
+        searchMovies(page);
+        resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+
+    moviesContainer.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-imdb-id]');
+
+      if (button) {
+        loadDetails(button.dataset.imdbId, button);
+      }
+    });
+  </script>
+</body>
+</html>
